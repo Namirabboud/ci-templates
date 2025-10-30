@@ -1,0 +1,39 @@
+name: 'Deploy Sites'
+description: 'Update the image tag of a service and deploy the project.'
+inputs:
+  service_name:
+    description: 'which service to deploy'
+    required: true
+  service_tag:
+    description: 'the image tag to change'
+    required: true
+  project_tag:
+    description: 'which project to deploy'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Get Token to trigger infra
+      uses: hashicorp/vault-action@v2 # Use the latest stable version
+      with:
+        method: jwt
+        jwtGithubAudience: vault
+        url: https://vault.same3na.com
+        role: github-token-role 
+        secrets: |
+          kv/data/infra/dev/github PAT | PAT ;
+
+    # deploy 
+    - name: deploy
+      uses: peter-evans/repository-dispatch@v3
+      with:
+        token: ${{ env.PAT }}
+        repository: Namirabboud/infra
+        event-type: deploy
+        client-payload: |
+          {
+            "project_name": "${{ inputs.service_name }}",
+            "image_tag": "${{ inputs.service_tag }}",
+            "role_tag": "${{ inputs.project_tag }}"
+          }      

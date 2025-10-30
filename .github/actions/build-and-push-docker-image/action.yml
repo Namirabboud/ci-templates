@@ -1,0 +1,40 @@
+name: 'Build and Push Docker Image'
+description: 'As the name suggests, build and push a docker image to the registry.'
+inputs:
+  registry:
+    description: 'the registry to push the image to'
+    required: true
+  dockerfile_path:
+    description: 'the path to the dockerfile'
+    required: true
+  image_name:
+    description: 'the name of the image to build'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Log in to the Container registry
+      uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set IMAGE_TAG environment variable
+      id: set_tag
+      run: |
+        IMAGE_TAG="${GITHUB_REF_NAME}-${GITHUB_SHA::7}"
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+        echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Build and push Docker image
+      id: push
+      uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+      with:
+        context: .
+        push: true
+        file: ${{ inputs.dockerfile_path }}
+        tags: |
+          ${{ inputs.registry }}/${{ inputs.image_name }}:${{ GITHUB_REF_NAME }}
+          ${{ inputs.registry }}/${{ inputs.image_name }}:${{ env.IMAGE_TAG }}
