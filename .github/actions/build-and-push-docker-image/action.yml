@@ -4,12 +4,19 @@ inputs:
   registry:
     description: 'the registry to push the image to'
     required: true
+  registry_pass:
+    description: 'the password to login to the registry'
+    required: true
   dockerfile_path:
     description: 'the path to the dockerfile'
     required: true
   image_name:
     description: 'the name of the image to build'
     required: true
+  image_main_tag:
+    description: 'the main tag to use for the image'
+    required: false
+    default: latest
 
 runs:
   using: 'composite'
@@ -19,12 +26,13 @@ runs:
       with:
         registry: ${{ inputs.registry }}
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ inputs.registry_pass }}
 
     - name: Set IMAGE_TAG environment variable
       id: set_tag
+      shell: bash
       run: |
-        IMAGE_TAG="${GITHUB_REF_NAME}-${GITHUB_SHA::7}"
+        IMAGE_TAG="${{ inputs.image_main_tag }}-${GITHUB_SHA::7}"
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
         echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
@@ -36,5 +44,5 @@ runs:
         push: true
         file: ${{ inputs.dockerfile_path }}
         tags: |
-          ${{ inputs.registry }}/${{ inputs.image_name }}:${{ GITHUB_REF_NAME }}
+          ${{ inputs.registry }}/${{ inputs.image_name }}:${{ inputs.image_main_tag }}
           ${{ inputs.registry }}/${{ inputs.image_name }}:${{ env.IMAGE_TAG }}
