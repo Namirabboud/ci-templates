@@ -18,6 +18,11 @@ inputs:
     required: false
     default: latest
 
+outputs:
+  image_tag:
+    description: 'The generated image tag (e.g., latest-abc1234)'
+    value: ${{ steps.set_tag.outputs.image_tag }}
+
 runs:
   using: 'composite'
   steps:
