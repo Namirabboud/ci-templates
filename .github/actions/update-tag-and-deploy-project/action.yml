@@ -15,12 +15,24 @@ runs:
   using: 'composite'
   steps:
     - name: Get Token to trigger infra
+      if: ${{ github.repository_owner == 'same3na' }}
       uses: hashicorp/vault-action@v2 # Use the latest stable version
       with:
         method: jwt
         jwtGithubAudience: vault
         url: https://vault.same3na.com
         role: github-token-role 
+        secrets: |
+          kv/data/infra/dev/github PAT | PAT ;
+
+    - name: Get Token to trigger infra
+      if: ${{ github.repository_owner == 'soundlytic' }}
+      uses: hashicorp/vault-action@v2 # Use the latest stable version
+      with:
+        method: jwt
+        jwtGithubAudience: vault
+        url: https://vault.same3na.com
+        role: github-token-role-tic 
         secrets: |
           kv/data/infra/dev/github PAT | PAT ;
 
