@@ -20,6 +20,8 @@ inputs:
   target:
     description: 'Optional Docker build target stage'
     required: false
+    default: ""
+
 
 outputs:
   image_tag:
@@ -59,4 +61,4 @@ runs:
           ${{ inputs.registry }}/${{ inputs.image_name }}:${{ env.IMAGE_TAG }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
-        target: ${{ inputs.target || '' }}
+        target: ${{ inputs.target }}
